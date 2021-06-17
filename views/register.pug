@@ -1,0 +1,51 @@
+extends layout/login-layout.pug
+block content
+    .loginContainer
+        h1 Register
+
+        
+        form#registrationForm(method="POST") 
+
+            p#errorMessage #{errorMessage}
+            input#firstName(type="text", name="firstName", placeholder="First name", required="", value=firstName)
+            input#lastName(type="text", name="lastName", placeholder="Last name", required="", value=lastName)
+            input#userName(type="text", name="userName", placeholder="Username", required="", value=userName)
+            input(type="email", name="email", placeholder="Email", required="", value=email)
+            input#password(type="password", name="password", placeholder="password", required="")
+            input#passwordConfirmation(type="password", name="passwordConf", placeholder="password confirmation", required="")
+
+            input#submitButton(type="submit", value="Login")
+
+        a(href="/login") Already have an account? Login here.
+        
+        script.
+            const password = document.getElementById('password')
+            const passwordConfirmation = document.getElementById('passwordConfirmation')
+            const form = document.getElementById("registrationForm")
+            const firstName = document.getElementById("firstName")
+            const lastName = document.getElementById("lastName")
+            const userName = document.getElementById("userName")
+
+            const errorMessage = document.getElementById("errorMessage")
+
+            console.log("Hello World")
+    
+            const validSubmission = (event) => {
+                event.preventDefault()
+
+                if(firstName.value.trim() === ""){
+                    errorMessage.textContent = "First name should not be empty."
+                }else if(lastName.value.trim() === "" ){
+                    errorMessage.textContent = "Last name should not be empty."
+                }else if(userName.value.trim() === ""){
+                    errorMessage.textContent = "Username should not be empty."
+                }else if(password.value !== passwordConfirmation.value){
+                    errorMessage.textContent = "Password does not match!"
+                }else{
+                    form.submit()
+                }
+
+            }
+
+            form.addEventListener("submit", validSubmission)
+
