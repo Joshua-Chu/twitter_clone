@@ -1,34 +1,4 @@
 extends layout/main-layout.pug
 block content
     +createPostForm(userLoggedIn)
-
-
-    script. 
-        const textArea = document.getElementById("postTextArea")
-        const submitButton = document.getElementById("submitButton")
-
-
-        textArea.addEventListener("input", () => {
-            
-            if(textArea.value.trim() !== ""){
-                submitButton.disabled = false
-                submitButton.classList.add("allowedSubmit")
-            }else{
-                submitButton.disabled = true
-                submitButton.classList.remove("allowedSubmit")
-
-            }
-        })  
-
-
-        const submitHandler = (e) =>{
-            e.preventDefault()
-            console.log(textArea.value)
-            textArea.value = ""
-            submitButton.disabled = true
-            submitButton.classList.remove("allowedSubmit")
-
-
-        }
-
-        submitButton.addEventListener("click", submitHandler)
+    #postContainer
