@@ -1,6 +1,35 @@
+window.addEventListener("click", (e) => {
+	if (e.target.id === "likeButton" || e.target.id === "likeIcon") {
+		const button = $(e.target);
+		const postId = getPostIdFromRoot(button);
+		fetch(`/api/posts/${postId}/like`, {
+			method: "PUT",
+		})
+			.then((res) => res.json())
+			.then((res) => {
+				button.find("span").text(res.likes.length || "");
+
+				if (res.likes.includes(userLoggedIn._id)) {
+					button.addClass("active");
+				} else {
+					button.removeClass("active");
+				}
+			});
+	}
+});
+
+console.log(userLoggedIn);
+
+const getPostIdFromRoot = (element) => {
+	const isRoot = element.hasClass("post");
+	const rootElement = isRoot ? elemet : element.closest(".post");
+	const postId = rootElement.data().id;
+
+	return postId;
+};
+
 const submitButton = document.getElementById("submitButton");
 const textArea = document.getElementById("postTextArea");
-// const postContainer = document.getElementById("postContainer");
 
 textArea.addEventListener("input", () => {
 	if (textArea.value.trim() !== "") {
@@ -42,8 +71,9 @@ export const CreatePostHTML = (postData) => {
 	var postedBy = postData.postedBy;
 	var displayName = postedBy.firstName + " " + postedBy.lastName;
 	var timestamp = timeDifference(new Date(), new Date(postData.createdAt));
+	var isLiked = postData.likes.includes(userLoggedIn._id) ? "active" : "";
 
-	let data = `<div class='post'>
+	let data = `<div class='post' data-id='${postData._id}'>
 	<div class='mainContentContainer'>
 		<div class='userImageContainer'>
 			<img src='${postedBy.profilePic}'>
@@ -64,13 +94,14 @@ export const CreatePostHTML = (postData) => {
 					</button>
 				</div>
 				<div class='postButtonContainer'>
-					<button>
+					<button class="retweetButton green">
 						<i class='fas fa-retweet'></i>
 					</button>
 				</div>
 				<div class='postButtonContainer'>
-					<button>
-						<i class='far fa-heart'></i>
+					<button id="likeButton" class="${isLiked} red">
+						<i class='far fa-heart' id="likeIcon"></i>
+						<span id="numOfLikes">${postData.likes.length || ""}</span>
 					</button>
 				</div>
 			</div>
