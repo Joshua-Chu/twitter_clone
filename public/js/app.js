@@ -15,14 +15,29 @@ window.addEventListener("click", (e) => {
 					button.removeClass("active");
 				}
 			});
+	} else if (e.target.id === "retweetButton" || e.target.id === "retweetIcon") {
+		const button = $(e.target);
+		const postId = getPostIdFromRoot(button);
+		fetch(`/api/posts/${postId}/retweet`, {
+			method: "POST",
+		})
+			.then((res) => res.json())
+			.then((res) => {
+				console.log(res);
+				button.find("span").text(res.retweetUser.length || "");
+
+				if (res.retweetUser.includes(userLoggedIn._id)) {
+					button.addClass("active");
+				} else {
+					button.removeClass("active");
+				}
+			});
 	}
 });
 
-console.log(userLoggedIn);
-
 const getPostIdFromRoot = (element) => {
 	const isRoot = element.hasClass("post");
-	const rootElement = isRoot ? elemet : element.closest(".post");
+	const rootElement = isRoot ? element : element.closest(".post");
 	const postId = rootElement.data().id;
 
 	return postId;
@@ -68,12 +83,27 @@ const submitHandler = (e) => {
 submitButton.addEventListener("click", submitHandler);
 
 export const CreatePostHTML = (postData) => {
+	//Handling retweets
+	var isRetweet = postData.repostData !== undefined;
+	var retweetedBy = isRetweet ? postData.postedBy.userName : null;
+	postData = isRetweet ? postData.repostData : postData;
+
+	var retweetText = isRetweet ? "@" + retweetedBy : "";
+	var retweetedByText = isRetweet
+		? `<i class='fas fa-retweet' id="retweetIcon"></i> Retweeted By`
+		: "";
+
+	//
 	var postedBy = postData.postedBy;
 	var displayName = postedBy.firstName + " " + postedBy.lastName;
 	var timestamp = timeDifference(new Date(), new Date(postData.createdAt));
 	var isLiked = postData.likes.includes(userLoggedIn._id) ? "active" : "";
+	var isRetweeted = postData.retweetUser.includes(userLoggedIn._id)
+		? "active"
+		: "";
 
 	let data = `<div class='post' data-id='${postData._id}'>
+		<div class="postActionContainer">${retweetedByText}<a href="/profile/${retweetedBy}"><span>${retweetText}</span></a></div>
 	<div class='mainContentContainer'>
 		<div class='userImageContainer'>
 			<img src='${postedBy.profilePic}'>
@@ -94,8 +124,9 @@ export const CreatePostHTML = (postData) => {
 					</button>
 				</div>
 				<div class='postButtonContainer'>
-					<button class="retweetButton green">
-						<i class='fas fa-retweet'></i>
+					<button id="retweetButton" class="${isRetweeted} green">
+						<i class='fas fa-retweet' id="retweetIcon"></i>
+						<span id="numOfretweets">${postData.retweetUser.length || ""}</span>
 					</button>
 				</div>
 				<div class='postButtonContainer'>

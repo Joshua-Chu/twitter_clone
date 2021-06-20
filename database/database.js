@@ -1,6 +1,4 @@
 const mongoose = require("mongoose");
-const url =
-	"mongodb+srv://admin:1234@twittercluster.wapq5.mongodb.net/twitterCloneDB?retryWrites=true&w=majority";
 
 const dev_url = "mongodb://127.0.0.1:27017/twitter_clone";
 mongoose
