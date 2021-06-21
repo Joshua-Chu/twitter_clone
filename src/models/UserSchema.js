@@ -1,5 +1,8 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
+
+//TODO ToJSON
+
 const UserSchema = new mongoose.Schema(
 	{
 		firstName: {

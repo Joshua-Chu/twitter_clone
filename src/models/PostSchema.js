@@ -10,6 +10,7 @@ const PostSchema = new mongoose.Schema(
 		likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 		retweetUser: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 		repostData: { type: mongoose.Schema.Types.ObjectId, ref: "Post" },
+		replyTo: { type: mongoose.Schema.Types.ObjectId, ref: "Post" },
 
 		pinned: { type: Boolean, default: false },
 	},

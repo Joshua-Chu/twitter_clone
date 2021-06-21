@@ -35,6 +35,21 @@ window.addEventListener("click", (e) => {
 	}
 });
 
+//When modal is open to fetch data
+
+$("#replyModal").on("show.bs.modal", async (e) => {
+	const button = $(e.relatedTarget);
+
+	const postId = getPostIdFromRoot(button);
+	const posts = await fetch(`/api/posts/${postId}`);
+	const result = await posts.json();
+
+	const html = CreatePostHTML(result);
+	$("#postToBeReplied").html("");
+
+	$("#postToBeReplied").prepend(html);
+});
+
 const getPostIdFromRoot = (element) => {
 	const isRoot = element.hasClass("post");
 	const rootElement = isRoot ? element : element.closest(".post");
@@ -56,7 +71,54 @@ textArea.addEventListener("input", () => {
 	}
 });
 
-const submitHandler = (e) => {
+const replyButton = document.getElementById("replyButton");
+const replyTextArea = document.getElementById("replyTextArea");
+
+replyTextArea.addEventListener("input", () => {
+	if (replyTextArea.value.trim() !== "") {
+		replyButton.disabled = false;
+		replyButton.classList.add("allowedSubmit");
+	} else {
+		replyButton.disabled = true;
+		replyButton.classList.remove("allowedSubmit");
+	}
+});
+
+const replyPostHandler = (e) => {
+	e.preventDefault();
+	const button = $(e.target.parentElement.previousSibling.children[0].children);
+
+	const toReplyId = button.data().id;
+
+	const value = replyTextArea.value;
+	const _data = {
+		toReplyId,
+		content: value,
+	};
+
+	console.log(_data);
+	fetch("/api/posts/reply", {
+		method: "POST",
+		body: JSON.stringify(_data),
+		headers: { "Content-type": "application/json; charset=UTF-8" },
+	})
+		.then((response) => response.json())
+		.then((postData) => {
+			console.log(postData);
+			// const html = CreatePostHTML(postData);
+			// $("#postContainer").prepend(html);
+		});
+	// 	.catch((err) => console.log(err));
+	replyTextArea.value = "";
+	submitButton.disabled = true;
+	submitButton.classList.remove("allowedSubmit");
+
+	location.reload();
+};
+
+replyButton.addEventListener("click", replyPostHandler);
+
+const submitPostHandler = (e) => {
 	e.preventDefault();
 	const value = textArea.value;
 	const _data = {
@@ -80,7 +142,7 @@ const submitHandler = (e) => {
 	submitButton.classList.remove("allowedSubmit");
 };
 
-submitButton.addEventListener("click", submitHandler);
+submitButton.addEventListener("click", submitPostHandler);
 
 export const CreatePostHTML = (postData) => {
 	//Handling retweets
@@ -102,43 +164,56 @@ export const CreatePostHTML = (postData) => {
 		? "active"
 		: "";
 
-	let data = `<div class='post' data-id='${postData._id}'>
+	//Handling replies
+
+	var replyFlag = "";
+
+	if (postData.replyTo) {
+		var replyToUsername = postData.replyTo.postedBy.userName;
+		replyFlag = `<div class="replyFlag">
+			Replying to <a href="/profile/${replyToUsername}">@${replyToUsername}</a>
+		</div>`;
+	}
+
+	let data = `
+	<div class='post' data-id='${postData._id}'>
 		<div class="postActionContainer">${retweetedByText}<a href="/profile/${retweetedBy}"><span>${retweetText}</span></a></div>
-	<div class='mainContentContainer'>
-		<div class='userImageContainer'>
-			<img src='${postedBy.profilePic}'>
+		<div class='mainContentContainer'>
+			<div class='userImageContainer'>
+				<img src='${postedBy.profilePic}'>
+			</div>
+			<div class='postContentContainer'>
+				<div class='header'>
+					<a href='/profile/${postedBy.userName}' class='displayName'>${displayName}</a>
+					<span class='username'>@${postedBy.userName}</span>
+					<span class='date'>${timestamp}</span>
+				</div>
+				${replyFlag}
+				<div class='postBody'>
+					<span>${postData.content}</span>
+				</div>
+				<div class='postFooter'>
+					<div class='postButtonContainer'>
+						<button type="button" id="replyPostButton" data-toggle="modal" data-target="#replyModal ">
+							<i class='far fa-comment'></i>
+						</button>
+					</div>
+					<div class='postButtonContainer'>
+						<button id="retweetButton" class="${isRetweeted} green">
+							<i class='fas fa-retweet' id="retweetIcon"></i>
+							<span id="numOfretweets">${postData.retweetUser.length || ""}</span>
+						</button>
+					</div>
+					<div class='postButtonContainer'>
+						<button id="likeButton" class="${isLiked} red">
+							<i class='far fa-heart' id="likeIcon"></i>
+							<span id="numOfLikes">${postData.likes.length || ""}</span>
+						</button>
+					</div>
+				</div>
+			</div>
 		</div>
-		<div class='postContentContainer'>
-			<div class='header'>
-				<a href='/profile/${postedBy.userName}' class='displayName'>${displayName}</a>
-				<span class='username'>@${postedBy.userName}</span>
-				<span class='date'>${timestamp}</span>
-			</div>
-			<div class='postBody'>
-				<span>${postData.content}</span>
-			</div>
-			<div class='postFooter'>
-				<div class='postButtonContainer'>
-					<button>
-						<i class='far fa-comment'></i>
-					</button>
-				</div>
-				<div class='postButtonContainer'>
-					<button id="retweetButton" class="${isRetweeted} green">
-						<i class='fas fa-retweet' id="retweetIcon"></i>
-						<span id="numOfretweets">${postData.retweetUser.length || ""}</span>
-					</button>
-				</div>
-				<div class='postButtonContainer'>
-					<button id="likeButton" class="${isLiked} red">
-						<i class='far fa-heart' id="likeIcon"></i>
-						<span id="numOfLikes">${postData.likes.length || ""}</span>
-					</button>
-				</div>
-			</div>
-		</div>
-	</div>
-</div>`;
+	</div>`;
 	return data;
 };
 

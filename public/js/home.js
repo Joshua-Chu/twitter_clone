@@ -3,6 +3,8 @@ import { CreatePostHTML } from "./app.js";
 const getPosts = async () => {
 	const posts = await fetch("/api/posts");
 	const result = await posts.json();
+
+	console.log(result);
 	outputPosts(result, $("#postContainer"));
 };
 

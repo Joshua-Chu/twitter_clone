@@ -29,6 +29,28 @@ router.post("/", async (req, res) => {
 	}
 });
 
+router.post("/reply", async (req, res) => {
+	const data = new Post({
+		content: req.body.content,
+		replyTo: req.body.toReplyId,
+		postedBy: req.session.user._id,
+	});
+
+	await data.populate("postedBy").execPopulate();
+
+	try {
+		await data
+			.save()
+			.then((replyData) => {
+				console.log(replyData);
+				res.status(201).send(replyData);
+			}) //! To change
+			.catch((error) => res.status(400).json({ errorMessage: error }));
+	} catch (error) {
+		res.status(500).send({ errorMessage: "Internal Server Error" });
+	}
+});
+
 router.get("/", (req, res) => {
 	const id = mongoose.Types.ObjectId(req.session.user._id);
 
@@ -36,9 +58,14 @@ router.get("/", (req, res) => {
 		Post.find({ postedBy: id })
 			.populate("postedBy")
 			.populate("repostData")
-			.populate({ path: "repostData.postedBy", model: "User" })
+			.populate("replyTo")
 			.sort({ createdAt: -1 })
 			.then(async (postData) => {
+				postData = await User.populate(postData, {
+					path: "replyTo.postedBy",
+					model: "User",
+				});
+
 				postData = await User.populate(postData, {
 					path: "repostData.postedBy",
 				});
@@ -49,6 +76,20 @@ router.get("/", (req, res) => {
 			});
 	} catch (error) {
 		res.status(500).send(error);
+	}
+});
+
+router.get("/:id", async (req, res) => {
+	const postId = req.params.id;
+
+	try {
+		await Post.findById(postId)
+			.populate("postedBy")
+			.populate("replyTo")
+			.then((post) => res.status(200).send(post))
+			.catch((error) => res.sendStatus(400));
+	} catch (error) {
+		res.status(500).send();
 	}
 });
 

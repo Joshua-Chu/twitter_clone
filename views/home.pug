@@ -2,6 +2,6 @@ extends layout/main-layout.pug
 block content
     +createPostForm(userLoggedIn)
     #postContainer
-
+    +createReplyModal(userLoggedIn)
 block scripts 
     script(type="module" src="/js/home.js") 
