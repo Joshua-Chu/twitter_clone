@@ -1,4 +1,3 @@
-const { response } = require("express");
 const express = require("express");
 const mongoose = require("mongoose");
 const router = express.Router();
@@ -83,11 +82,42 @@ router.get("/:id", async (req, res) => {
 	const postId = req.params.id;
 
 	try {
-		await Post.findById(postId)
+		let post = await Post.findById(postId)
 			.populate("postedBy")
 			.populate("replyTo")
-			.then((post) => res.status(200).send(post))
+			.populate({
+				path: "replyTo",
+				populate: { path: "postedBy", model: "User" },
+			})
+
 			.catch((error) => res.sendStatus(400));
+
+		if (post.replyTo) {
+			post = await Post.findById(post.replyTo)
+				.populate("postedBy")
+				.populate("replyTo")
+				.populate({
+					path: "replyTo",
+					populate: { path: "postedBy", model: "User" },
+				})
+
+				.catch((error) => res.sendStatus(400));
+		}
+		const results = {
+			post,
+		};
+		results.replies = await Post.find({ replyTo: results.post._id })
+			.populate("postedBy")
+			.populate("replyTo")
+			.populate({
+				path: "replyTo",
+				populate: { path: "postedBy", model: "User" },
+			})
+			.sort({ createdAt: -1 })
+			.catch((error) => res.sendStatus(400));
+
+		console.log(results);
+		res.status(200).send(results);
 	} catch (error) {
 		res.status(500).send();
 	}

@@ -39,13 +39,16 @@ app.get("/", middleware.requireLogin, (req, res) => {
 
 const loginRoute = require("./routes/loginRoutes");
 const logoutRoute = require("./routes/logoutRoute");
-const registerRouter = require("./routes/registerRoute");
-const postRoutes = require("./routes/api/posts");
+const registerRoute = require("./routes/registerRoute");
+const postRoute = require("./routes/postRoutes");
+const postsApi = require("./routes/api/posts");
 
 app.use("/login", loginRoute);
-app.use("/register", registerRouter);
+app.use("/register", registerRoute);
 app.use("/logout", logoutRoute);
-app.use("/api/posts", postRoutes);
+
+app.use("/api/posts", postsApi);
+app.use("/post", middleware.requireLogin, postRoute);
 
 app.listen(PORT, () => {
 	console.log(`Server listening at http://localhost:${PORT}`);

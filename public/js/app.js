@@ -32,6 +32,13 @@ window.addEventListener("click", (e) => {
 					button.removeClass("active");
 				}
 			});
+	} else if (e.target.classList[0]?.includes("post")) {
+		const element = $(e.target);
+		const postId = getPostIdFromRoot(element);
+
+		if (postId !== undefined) {
+			window.location.href = `/post/${postId}`;
+		}
 	}
 });
 
@@ -44,7 +51,7 @@ $("#replyModal").on("show.bs.modal", async (e) => {
 	const posts = await fetch(`/api/posts/${postId}`);
 	const result = await posts.json();
 
-	const html = CreatePostHTML(result);
+	const html = CreatePostHTML(result.post);
 	$("#postToBeReplied").html("");
 
 	$("#postToBeReplied").prepend(html);
@@ -61,7 +68,7 @@ const getPostIdFromRoot = (element) => {
 const submitButton = document.getElementById("submitButton");
 const textArea = document.getElementById("postTextArea");
 
-textArea.addEventListener("input", () => {
+textArea?.addEventListener("input", () => {
 	if (textArea.value.trim() !== "") {
 		submitButton.disabled = false;
 		submitButton.classList.add("allowedSubmit");
@@ -74,7 +81,7 @@ textArea.addEventListener("input", () => {
 const replyButton = document.getElementById("replyButton");
 const replyTextArea = document.getElementById("replyTextArea");
 
-replyTextArea.addEventListener("input", () => {
+replyTextArea?.addEventListener("input", () => {
 	if (replyTextArea.value.trim() !== "") {
 		replyButton.disabled = false;
 		replyButton.classList.add("allowedSubmit");
@@ -109,14 +116,11 @@ const replyPostHandler = (e) => {
 			// $("#postContainer").prepend(html);
 		});
 	// 	.catch((err) => console.log(err));
-	replyTextArea.value = "";
-	submitButton.disabled = true;
-	submitButton.classList.remove("allowedSubmit");
 
 	location.reload();
 };
 
-replyButton.addEventListener("click", replyPostHandler);
+replyButton?.addEventListener("click", replyPostHandler);
 
 const submitPostHandler = (e) => {
 	e.preventDefault();
@@ -142,9 +146,9 @@ const submitPostHandler = (e) => {
 	submitButton.classList.remove("allowedSubmit");
 };
 
-submitButton.addEventListener("click", submitPostHandler);
+submitButton?.addEventListener("click", submitPostHandler);
 
-export const CreatePostHTML = (postData) => {
+export const CreatePostHTML = (postData, largeFont = false) => {
 	//Handling retweets
 	var isRetweet = postData.repostData !== undefined;
 	var retweetedBy = isRetweet ? postData.postedBy.userName : null;
@@ -175,8 +179,10 @@ export const CreatePostHTML = (postData) => {
 		</div>`;
 	}
 
+	//largeFont
+	var largeFontClass = largeFont ? "largeFont" : "";
 	let data = `
-	<div class='post' data-id='${postData._id}'>
+	<div class='post ${largeFontClass}' data-id='${postData._id}'>
 		<div class="postActionContainer">${retweetedByText}<a href="/profile/${retweetedBy}"><span>${retweetText}</span></a></div>
 		<div class='mainContentContainer'>
 			<div class='userImageContainer'>
