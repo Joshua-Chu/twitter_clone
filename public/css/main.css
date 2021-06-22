@@ -185,6 +185,14 @@ nav a:hover {
 	padding: 2px 5px;
 }
 
+.header {
+	display: flex;
+}
+
+.header .date {
+	flex: 1;
+}
+
 .header a:hover {
 	text-decoration: underline;
 }

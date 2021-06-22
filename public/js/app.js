@@ -57,6 +57,15 @@ $("#replyModal").on("show.bs.modal", async (e) => {
 	$("#postToBeReplied").prepend(html);
 });
 
+$("#deletePostModal").on("show.bs.modal", async (e) => {
+	const button = $(e.relatedTarget);
+	const postId = button.data().id;
+
+	$("#deletePostButton").data("id", postId);
+
+	console.log($("#deletePostButton").data().id);
+});
+
 const getPostIdFromRoot = (element) => {
 	const isRoot = element.hasClass("post");
 	const rootElement = isRoot ? element : element.closest(".post");
@@ -148,6 +157,21 @@ const submitPostHandler = (e) => {
 
 submitButton?.addEventListener("click", submitPostHandler);
 
+const deletePostButton = document.getElementById("deletePostButton");
+
+deletePostButton?.addEventListener("click", () => {
+	const postId = $("#deletePostButton").data().id;
+	fetch(`/api/posts/delete/${postId}`, {
+		method: "DELETE",
+		headers: { "Content-type": "application/json; charset=UTF-8" },
+	})
+		.then((response) => response.text())
+		.then((postData) => {
+			console.log(postData);
+			window.location.href = "/";
+		});
+});
+
 export const CreatePostHTML = (postData, largeFont = false) => {
 	//Handling retweets
 	var isRetweet = postData.repostData !== undefined;
@@ -181,6 +205,12 @@ export const CreatePostHTML = (postData, largeFont = false) => {
 
 	//largeFont
 	var largeFontClass = largeFont ? "largeFont" : "";
+
+	//Delete Button
+	var button = "";
+	if (postData.postedBy._id === userLoggedIn._id) {
+		button = `<button data-id="${postData._id}" data-toggle="modal" data-target="#deletePostModal"><span>✖</span></button>`;
+	}
 	let data = `
 	<div class='post ${largeFontClass}' data-id='${postData._id}'>
 		<div class="postActionContainer">${retweetedByText}<a href="/profile/${retweetedBy}"><span>${retweetText}</span></a></div>
@@ -193,6 +223,7 @@ export const CreatePostHTML = (postData, largeFont = false) => {
 					<a href='/profile/${postedBy.userName}' class='displayName'>${displayName}</a>
 					<span class='username'>@${postedBy.userName}</span>
 					<span class='date'>${timestamp}</span>
+					${button}
 				</div>
 				${replyFlag}
 				<div class='postBody'>

@@ -237,4 +237,24 @@ router.post("/:id/retweet", async (req, res) => {
 
 	res.status(201).send(post);
 });
+
+router.delete("/delete/:id", async (req, res) => {
+	const postId = req.params.id;
+
+	try {
+		const post = await Post.findByIdAndDelete(postId).catch((error) =>
+			res.sendStatus(400)
+		);
+
+		await Post.deleteMany({ replyTo: postId })
+			.then(async () => {
+				await Post.deleteMany({ repostData: postId })
+					.then(res.status(202).send())
+					.catch((error) => res.sendStatus(400));
+			})
+			.catch((error) => res.sendStatus(400));
+	} catch (error) {
+		res.status(500).send();
+	}
+});
 module.exports = router;
