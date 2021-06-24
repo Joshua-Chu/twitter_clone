@@ -42,11 +42,12 @@ const logoutRoute = require("./routes/logoutRoute");
 const registerRoute = require("./routes/registerRoute");
 const postRoute = require("./routes/postRoutes");
 const postsApi = require("./routes/api/posts");
+const profileRoute = require("./routes/profileRoutes");
 
 app.use("/login", loginRoute);
 app.use("/register", registerRoute);
 app.use("/logout", logoutRoute);
-
+app.use("/profile", profileRoute);
 app.use("/api/posts", postsApi);
 app.use("/post", middleware.requireLogin, postRoute);
 
